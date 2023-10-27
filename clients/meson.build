@@ -172,6 +172,40 @@ simple_clients = [
 	},
 ]
 
+dep_vulkan = dependency('vulkan', required: false)
+prog_glslang = find_program('glslangValidator', required : false)
+
+if dep_vulkan.found() and prog_glslang.found()
+	gen = generator(prog_glslang, output : '@PLAINNAME@.spv.h',
+		arguments : [ '@INPUT@', '--quiet', '-V', '-x', '-o', '@OUTPUT@' ] )
+	spirv_files = gen.process('simple-vulkan.vert', 'simple-vulkan.frag')
+
+	simple_clients += {
+		'name': 'vulkan',
+		'sources': [
+			'simple-vulkan.c',
+			spirv_files,
+			fractional_scale_v1_client_protocol_h,
+			fractional_scale_v1_protocol_c,
+			tearing_control_v1_client_protocol_h,
+			tearing_control_v1_protocol_c,
+			viewporter_client_protocol_h,
+			viewporter_protocol_c,
+			xdg_shell_client_protocol_h,
+			xdg_shell_protocol_c,
+		],
+		'dep_objs': [
+			dep_vulkan,
+			dep_libm,
+			dep_libshared,
+			dep_matrix_c,
+			dep_wayland_client,
+		],
+		'deps': [ 'vulkan', 'wayland-cursor' ],
+		'options': [ 'renderer-gl' ]
+	}
+endif
+
 foreach t : simple_clients
 	if simple_build_all or simple_clients_enabled.contains(t.get('name'))
 		t_name = 'weston-simple-' + t.get('name')
