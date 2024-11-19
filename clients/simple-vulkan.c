@@ -771,15 +771,21 @@ init_vulkan(struct window *window)
 	vkCreateGraphicsPipelines(window->vk.device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, NULL, &window->vk.pipeline);
 
 	static const float vVertices[] = {
-		-0.5f, -0.5f, 0.0,
-		 0.5f, -0.5f, 0.0,
-		 0.0f,  0.5f, 0.0,
+		-0.005f, -1.0f, 0.0,
+		 0.005f, -1.0f, 0.0,
+		-0.005f,  1.0f, 0.0,
+		-0.005f,  1.0f, 0.0,
+		 0.005f, -1.0f, 0.0,
+		 0.005f,  1.0f, 0.0,
 	};
 
 	static const float vColors[] = {
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
 	};
 
 	window->vk.vertex_offset = sizeof(window->vk.ubo);
@@ -1034,7 +1040,7 @@ draw_triangle(struct window *window, struct window_buffer *b)
 	};
 	vkCmdSetScissor(b->cmd_buffer, 0, 1, &scissor);
 
-	vkCmdDraw(b->cmd_buffer, 3, 1, 0, 0);
+	vkCmdDraw(b->cmd_buffer, 6, 1, 0, 0);
 
 	vkCmdEndRenderPass(b->cmd_buffer);
 
@@ -1177,7 +1183,7 @@ redraw(struct window *window)
 {
 	float angle;
 	struct weston_matrix rotation;
-	static const uint32_t speed_div = 5, benchmark_interval = 5;
+	static const uint32_t speed_div = 3, benchmark_interval = 5;
 	struct timeval tv;
 	VkResult result;
 	uint32_t index;
@@ -1206,13 +1212,9 @@ redraw(struct window *window)
 
 	weston_matrix_init(&rotation);
 
-	angle = ((time - window->initial_frame_time) / speed_div)
-		% 360 * M_PI / 180.0;
+	angle = ((time - window->initial_frame_time) / speed_div) % 1000;
 
-	rotation.d[0] =   cos(angle);
-	rotation.d[2] =   sin(angle);
-	rotation.d[8] =  -sin(angle);
-	rotation.d[10] =  cos(angle);
+	rotation.d[12] = (angle - 500) / 500.0;
 	/* Flip from OpenGL to Vulkan coordinates */
 	rotation.d[5] *= -1.0;
 
